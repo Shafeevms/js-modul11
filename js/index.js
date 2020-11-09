@@ -5,6 +5,20 @@ const store = {
     people: [],
     currentTitle: null,
 };
+const stringItems = {
+    starships: {
+        names: ['Модель', 'Изготовитель', 'Длина', 'Вместительность', 'Класс Судна'],
+        address: ['model', 'manufacturer', 'length', 'cargo_capacity', 'starship_class'],
+    },
+    planets: {
+        names: ['Диаметр', 'Климат', 'Гравитация', 'Местность', 'Популяция'],
+        address: ['diameter', 'climate', 'gravity', 'terrain', 'population']
+    },
+    people: {
+        names: ['Рост', 'Вес', 'Пол', 'Место рождения', 'Корабли'],
+        address: ['height', 'mass', 'gender', 'homeworld', 'starships']
+    },
+}
 // функция рендерит заголовок, поле для ввода и список элементов
 
 function inputRender(category) {    
@@ -17,23 +31,10 @@ function inputRender(category) {
 
 
            
-// запрашивает и получает список данных с сервера по категории запроса 
-// разобраться как считать количество страниц в категории..
+// запрашивает и получает список данных с сервера по категории запроса и скадывает их в объект store
+
 function requestTitle(name) {
-    // for(let count = 1; count < 10; count++) {
-    //     fetch(`https://swapi.dev/api/${name}/?page=${count}`)
-    //       .then(resp => resp.json())
-    //       .then(json => {
-    //         const {results } = json;
-    //         results.forEach(element => {
-    //             let li = document.createElement('li');
-    //             li.textContent = element.name;
-    //             li.classList.add('block__item');
-    //             li.dataset.url = element.url;
-    //             document.querySelector('.block__list').append(li);
-    //         })
-    //     })      
-    // }
+   
     return fetch(`https://swapi.dev/api/${name}/`)
         .then(resp => resp.json())
         .then(json => {
@@ -44,8 +45,7 @@ function requestTitle(name) {
             while(i < count) {
                 i += results.length;
                 pageCount++;
-                requests.push(fetch(`https://swapi.dev/api/${name}/?page=${pageCount}`))
-                  
+                requests.push(fetch(`https://swapi.dev/api/${name}/?page=${pageCount}`))    
             }
             return Promise.all(requests)
                 
@@ -54,14 +54,14 @@ function requestTitle(name) {
         .then(json => {
             json.forEach(item => {
                 const {results} = item;
-                store[name] =[...store[name],...results];
+                store[name] = [...store[name],...results];
             })
         })
                 
     }
             
 
-
+// Обработчики
 document.body.addEventListener('click', function(e){
     let target = e.target;
     let parent = target.parentNode;
@@ -70,6 +70,11 @@ document.body.addEventListener('click', function(e){
     
 
     if(target.classList.contains('nav__title')) {
+        store.starships = [];
+        store.people = [];
+        store.planets = [];
+        document.querySelector('.header').style.backgroundImage = `url("/pics/${target.getAttribute('data-name')}.jpg")`;
+
         inputRender(target.textContent);
 
         requestTitle(name)
@@ -78,90 +83,41 @@ document.body.addEventListener('click', function(e){
                 store.currentTitle = name;
             })
 
-
-
     }
     if (target.classList.contains('block__item')) {
-        itemDetailsRender(url)
+        const element = store[store.currentTitle].find(item => item.name === target.textContent);
+        itemDetailsRender(element, stringItems, store.currentTitle);
     }
     if (target.classList.contains('block__btn')) {
-        const element = store[store.currentTitle].find(item => item.name === parent.querySelector('.block__input').value)
-        itemDetailsRender(element.url);
+        const element = store[store.currentTitle].find(item => item.name === parent.querySelector('.block__input').value);
+        if(element) {
+            itemDetailsRender(element, stringItems, store.currentTitle);
+        } else misstake();
+        
         
     }
         
 });
 
-// функция по нажатию на элемент выдаёт детальную информацию
-function itemDetailsRender(url) {
-    fetch(url)
-      .then(resp => (resp.json()))
-      .then(json => {
-        const {
-            name, 
-            height, 
-            mass, 
-            gender, 
-            homeworld, 
-            starships,
-            model,
-            manufacturer,
-            length,
-            cargo_capacity: capacity,
-            starship_class: starshipClass,
-            diameter,
-            climate,
-            terrain,
-            population,
-            gravity
+// функция по нажатию на элемент  и по поиску выдаёт детальную информацию
+function itemDetailsRender(element, stringItems, title) {
 
-        } = json;
-        
-            let personHtml = `<article class="article article-person">
-                                <h3 class="block__title">${name}</h3>
-                                <ul class="">
-                                    <li><span class="block__description">Рост:</span><span class="block__responce">${height}</span></li>
-                                    <li><span class="block__description">Вес:</span><span class="block__responce">${mass}</span></li>
-                                    <li><span class="block__description">Пол:</span><span class="block__responce">${gender}</span></li>
-                                    <li><span class="block__description">Место рождения:</span><span class="block__responce">${homeworld}</span></li>
-                                    <li><span class="block__description">Корабли:</span><span class="block__responce">${starships}</span></li>
-                                </ul>
-                                </article>`
-
-            let starShipHtml = `<article class="article article-person">
-                                <h3 class="block__title">${name}</h3>
-                                <ul class="">
-                                    <li><span class="block__description">Модель:</span><span class="block__responce">${model}</span></li>
-                                    <li><span class="block__description">Изготовитель:</span><span class="block__responce">${manufacturer}</span></li>
-                                    <li><span class="block__description">Длина:</span><span class="block__responce">${length}</span></li>
-                                    <li><span class="block__description">Вместительность:</span><span class="block__responce">${capacity}</span></li>
-                                    <li><span class="block__description">Класс судна:</span><span class="block__responce">${starshipClass}</span></li>
-                                </ul>
-                            </article>`
-            let planetHtlm = `<article class="article article-person">
-                                <h3 class="block__title">${name}</h3>
-                                <ul class="">
-                                    <li><span class="block__description">Диаметр:</span><span class="block__responce">${diameter}</span></li>
-                                    <li><span class="block__description">Климат:</span><span class="block__responce">${climate}</span></li>
-                                    <li><span class="block__description">Гравитация:</span><span class="block__responce">${gravity}</span></li>
-                                    <li><span class="block__description">Местность:</span><span class="block__responce">${terrain}</span></li>
-                                    <li><span class="block__description">Популяция:</span><span class="block__responce">${population}</span></li>
-                                </ul>
-                            </article>`
-        if (url.includes('people')) {
-            document.querySelector('.block').innerHTML = personHtml;
-        } else if (url.includes('starships')) {
-            document.querySelector('.block').innerHTML = starShipHtml;
-        } else if (url.includes('planets')) {
-            document.querySelector('.block').innerHTML = planetHtlm;
-        }
-
-
-      })
+    let stringHtml = `<article class="article article-person">
+                                 <h3 class="block__title">${element.name}</h3>
+                                 <ul class="">
+                                     <li><span class="block__description">${stringItems[title]['names'][0]}:</span><span class="block__responce">${element[stringItems[title]['address'][0]]}</span></li>
+                                     <li><span class="block__description">${stringItems[title]['names'][1]}:</span><span class="block__responce">${element[stringItems[title]['address'][1]]}</span></li>
+                                     <li><span class="block__description">${stringItems[title]['names'][2]}:</span><span class="block__responce">${element[stringItems[title]['address'][2]]}</span></li>
+                                     <li><span class="block__description">${stringItems[title]['names'][3]}:</span><span class="block__responce">${element[stringItems[title]['address'][3]]}</span></li>
+                                     <li><span class="block__description">${stringItems[title]['names'][4]}:</span><span class="block__responce">${element[stringItems[title]['address'][4]]}</span></li>
+                                 </ul>
+                                 </article>`
+    document.querySelector('.block').innerHTML = stringHtml;
 
 
 }
 
+// функция рендерит список всех элементов
 function renderView(name) {
     store[name].forEach(element => {
         let li = document.createElement('li');
@@ -170,10 +126,15 @@ function renderView(name) {
         li.dataset.url = element.url;
         document.querySelector('.block__list').append(li);
 
-    })
-
-   
+    })  
 }
-// разобраться с максимальным значением счетчика
 
+// ошибка
+function misstake() {
+    const misstake = `<div class="block__wrap">
+                    <img src="./pics/yoda.jpg" alt="Yoda" class="block__img">
+                    <span class="text__misstake">Найдено ничего, раз попробуй ещё!!!</span>
+                     </div>`
+    document.querySelector('.block').innerHTML = misstake;
+}
 // разбраться с отсылкой на название планеты у person и массивом кораблей

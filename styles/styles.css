@@ -12,7 +12,7 @@ ul {
     justify-content: flex-end;
     align-items: center;
     height: 240px;
-    background: url('/pics/original.jpg') center no-repeat;
+    background: url('/pics/starships.jpg') center no-repeat;
     background-size: cover;
 }
 .title {
@@ -57,10 +57,32 @@ ul {
     margin-bottom: 5px;
     cursor: pointer;
 }
+.block__btn:hover {
+    background-color: rgb(202, 60, 107);
+}
+.nav__title:hover,
+.block__item:hover {
+    color: rgb(202, 60, 107);
+}
 .article {
     padding: 0 40px;
 }
 .block__description {
     display: inline-block;
     margin-right: 10px;
+}
+.block__wrap {
+    position: relative;
+}
+.block__img {
+    position: absolute;
+    left: 250px;
+    height: 400px;
+}
+.text__misstake{
+    position: absolute;
+    top: 90px;
+    right: 370px;
+    font-size: 36px;
+    color: rgb(202, 60, 107);
 }
