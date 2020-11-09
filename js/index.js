@@ -1,5 +1,10 @@
 'use strict';
-
+const store = {
+    starships: [],
+    planets: [],
+    people: [],
+    currentTitle: null,
+};
 // функция рендерит заголовок, поле для ввода и список элементов
 
 function inputRender(category) {    
@@ -15,36 +20,75 @@ function inputRender(category) {
 // запрашивает и получает список данных с сервера по категории запроса 
 // разобраться как считать количество страниц в категории..
 function requestTitle(name) {
-    for(let count = 1; count < 10; count++) {
-        fetch(`https://swapi.dev/api/${name}/?page=${count}`)
-          .then(resp => resp.json())
-          .then(json => {
-            const {results } = json;
-            results.forEach(element => {
-                let li = document.createElement('li');
-                li.textContent = element.name;
-                li.classList.add('block__item');
-                li.dataset.url = element.url;
-                document.querySelector('.block__list').append(li);
+    // for(let count = 1; count < 10; count++) {
+    //     fetch(`https://swapi.dev/api/${name}/?page=${count}`)
+    //       .then(resp => resp.json())
+    //       .then(json => {
+    //         const {results } = json;
+    //         results.forEach(element => {
+    //             let li = document.createElement('li');
+    //             li.textContent = element.name;
+    //             li.classList.add('block__item');
+    //             li.dataset.url = element.url;
+    //             document.querySelector('.block__list').append(li);
+    //         })
+    //     })      
+    // }
+    return fetch(`https://swapi.dev/api/${name}/`)
+        .then(resp => resp.json())
+        .then(json => {
+            const {results, count} = json;
+            let i = 1;
+            let pageCount = 0;
+            let requests = [];
+            while(i < count) {
+                i += results.length;
+                pageCount++;
+                requests.push(fetch(`https://swapi.dev/api/${name}/?page=${pageCount}`))
+                  
+            }
+            return Promise.all(requests)
+                
+        })
+        .then(responses => Promise.all(responses.map(r => r.json())))
+        .then(json => {
+            json.forEach(item => {
+                const {results} = item;
+                store[name] =[...store[name],...results];
             })
         })
+                
     }
-}
+            
+
 
 document.body.addEventListener('click', function(e){
     let target = e.target;
     let parent = target.parentNode;
     let url = e.target.getAttribute('data-url');
+    const name = target.getAttribute('data-name');
     
 
     if(target.classList.contains('nav__title')) {
         inputRender(target.textContent);
-        requestTitle(target.getAttribute('data-name'))
+
+        requestTitle(name)
+            .then(() => {
+                renderView(name);
+                store.currentTitle = name;
+            })
+
+
+
     }
     if (target.classList.contains('block__item')) {
         itemDetailsRender(url)
     }
-
+    if (target.classList.contains('block__btn')) {
+        const element = store[store.currentTitle].find(item => item.name === parent.querySelector('.block__input').value)
+        itemDetailsRender(element.url);
+        
+    }
         
 });
 
@@ -115,9 +159,21 @@ function itemDetailsRender(url) {
 
       })
 
+
 }
 
+function renderView(name) {
+    store[name].forEach(element => {
+        let li = document.createElement('li');
+        li.textContent = element.name;
+        li.classList.add('block__item');
+        li.dataset.url = element.url;
+        document.querySelector('.block__list').append(li);
 
+    })
+
+   
+}
 // разобраться с максимальным значением счетчика
 
 // разбраться с отсылкой на название планеты у person и массивом кораблей
