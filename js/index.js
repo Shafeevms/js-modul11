@@ -136,5 +136,8 @@ function misstake() {
                     <span class="text__misstake">Найдено ничего, раз попробуй ещё!!!</span>
                      </div>`
     document.querySelector('.block').innerHTML = misstake;
+    setTimeout(() => document.querySelector('.block__wrap').classList.add('block__wrap-visible'), 0)
+    
+    
 }
 // разбраться с отсылкой на название планеты у person и массивом кораблей

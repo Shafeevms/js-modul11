@@ -73,6 +73,11 @@ ul {
 }
 .block__wrap {
     position: relative;
+    opacity: 0;
+    transition: opacity 1.5s ease-in;
+}
+.block__wrap-visible {
+    opacity: 1;
 }
 .block__img {
     position: absolute;
